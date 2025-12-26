@@ -1,0 +1,11 @@
+{
+  "name": "castlemaine-flyer-grok-bot",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@netlify/functions": "^2.8.2",
+    "axios": "^1.7.7",
+    "openai": "^4.67.3"
+  }
+}
