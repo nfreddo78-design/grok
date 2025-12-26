@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Castlemaine Flyer</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+  </style>
+</head>
+<body>
+  <h1>Welcome to Castlemaine Flyer 🚀</h1>
+  <p>Chat with our AI booking assistant below!</p>
+
+  <div id="grok-chat-widget" style="position:fixed;bottom:20px;right:20px;width:380px;height:600px;border:1px solid #ccc;border-radius:12px;background:white;box-shadow:0 4px 20px rgba(0,0,0,0.2);display:flex;flex-direction:column;z-index:1000;">
+    <div style="padding:12px;background:#000;color:white;border-radius:12px 12px 0 0;font-weight:bold;">Castlemaine Flyer Assistant 🤖</div>
+    <div id="messages" style="flex:1;padding:12px;overflow-y:auto;background:#f9f9f9;"></div>
+    <input id="user-input" placeholder="Type your message... e.g. Hi, can you help book an airport transfer?" style="padding:12px;border:none;border-top:1px solid #ccc;outline:none;" />
+  </div>
+
+  <script src="/src/chat.js"></script>
+</body>
+</html>
