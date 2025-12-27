@@ -19,121 +19,155 @@
       background: #000;
       color: white;
       text-align: center;
-      padding: 60px 20px 40px;
+      padding: 80px 20px 60px;
     }
-    h1 { margin: 0; font-size: 2.8em; }
-    .subtitle { font-size: 1.3em; max-width: 700px; margin: 20px auto 0; opacity: 0.9; }
+    h1 {
+      margin: 0;
+      font-size: 3.2em;
+    }
+    .subtitle {
+      font-size: 1.4em;
+      max-width: 760px;
+      margin: 24px auto 0;
+      line-height: 1.4;
+      opacity: 0.95;
+    }
     main {
       flex: 1;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
       padding: 40px 20px;
     }
-    .search-container {
+    .container {
       width: 100%;
-      max-width: 800px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-      padding: 40px;
-      text-align: center;
+      max-width: 860px;
     }
-    .input-wrapper {
+    .input-group {
       display: flex;
-      margin-top: 30px;
-      gap: 12px;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 32px;
     }
     #user-input {
-      flex: 1;
-      padding: 18px 20px;
-      font-size: 1.2em;
-      border: 2px solid #ddd;
-      border-radius: 8px;
+      flex: 1 1 100%;
+      min-width: 300px;
+      padding: 20px 24px;
+      font-size: 1.25em;
+      border: 2px solid #d0d0d0;
+      border-radius: 10px;
       outline: none;
+      transition: border-color 0.2s;
     }
-    #user-input:focus { border-color: #000; }
+    #user-input:focus {
+      border-color: #000;
+    }
     button {
-      padding: 18px 32px;
-      font-size: 1.1em;
+      padding: 20px 40px;
+      font-size: 1.2em;
       background: #000;
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
     }
-    button:hover { background: #333; }
+    button:hover {
+      background: #222;
+    }
+    #loading {
+      display: none;
+      margin-top: 24px;
+      font-size: 1.1em;
+      color: #555;
+      text-align: center;
+    }
     #result {
-      margin-top: 40px;
-      padding: 20px;
-      background: #f0f8ff;
-      border-radius: 8px;
+      margin-top: 32px;
+      padding: 24px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      line-height: 1.6;
       white-space: pre-wrap;
-      text-align: left;
-      min-height: 100px;
+      min-height: 120px;
     }
-    #loading { display: none; margin-top: 20px; font-style: italic; color: #666; }
+    #result strong {
+      color: #000;
+    }
+    @media (max-width: 600px) {
+      header { padding: 60px 16px 40px; }
+      h1 { font-size: 2.4em; }
+      .subtitle { font-size: 1.2em; }
+      button { width: 100%; }
+    }
   </style>
 </head>
 <body>
+
   <header>
-    <h1>Welcome to Castlemaine Flyer 🚀</h1>
-    <p class="subtitle">
-      Tell us your flight number and date, plus pickup or drop-off address.<br/>
-      We'll do the rest — find the best time, calculate price (including any high-demand adjustment), and get you booked.
-    </p>
+    <h1>Castlemaine Flyer</h1>
+    <div class="subtitle">
+      Tell us your flight number and date, plus your pickup or drop-off address.<br>
+      We’ll handle the rest — find the best transfer time, calculate the price (including any high-demand adjustment), and get you booked.
+    </div>
   </header>
 
   <main>
-    <div class="search-container">
-      <form id="search-form">
-        <div class="input-wrapper">
-          <input 
-            id="user-input" 
-            type="text" 
-            placeholder="e.g. Pickup from Castlemaine to Melbourne Airport for QF123 on Jan 15, flight arrives 14:30"
+    <div class="container">
+      <form id="booking-form">
+        <div class="input-group">
+          <input
+            id="user-input"
+            type="text"
+            placeholder="Example: Pickup from Castlemaine to Melbourne Airport for QF123 on 15 Jan, flight arrives 14:30"
             autocomplete="off"
           />
-          <button type="submit">Find & Book</button>
+          <button type="submit">Get Quote & Book</button>
         </div>
       </form>
-      
-      <div id="loading">Working on your quote...</div>
+
+      <div id="loading">Finding the best option for you…</div>
       <div id="result"></div>
     </div>
   </main>
 
   <script>
-    const form = document.getElementById('search-form');
+    const form = document.getElementById('booking-form');
     const input = document.getElementById('user-input');
     const resultDiv = document.getElementById('result');
-    const loading = document.getElementById('loading');
+    const loadingDiv = document.getElementById('loading');
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const message = input.value.trim();
-      if (!message) return;
+      const query = input.value.trim();
+      if (!query) return;
 
       resultDiv.innerHTML = '';
-      loading.style.display = 'block';
+      loadingDiv.style.display = 'block';
       input.disabled = true;
+      input.blur();
 
       try {
-        const res = await fetch('/api/grok-chat', {
+        const response = await fetch('/api/grok-chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message })
+          body: JSON.stringify({ message: query })
         });
 
-        if (!res.ok) throw new Error(`Server error: ${res.status}`);
+        if (!response.ok) {
+          throw new Error(`Request failed (${response.status})`);
+        }
 
-        const data = await res.json();
-        resultDiv.innerHTML = `<strong>Assistant:</strong><br>${data.reply.replace(/\n/g, '<br>')}`;
+        const data = await response.json();
+        const text = data.reply || 'No response received.';
+
+        resultDiv.innerHTML = `<strong>Assistant response:</strong><br>${text.replace(/\n/g, '<br>')}`;
       } catch (err) {
-        resultDiv.innerHTML = `Error: ${err.message}<br>Please try again or contact support.`;
+        resultDiv.innerHTML = `Sorry, something went wrong:<br><strong>${err.message}</strong><br>Please try again.`;
         console.error(err);
       } finally {
-        loading.style.display = 'none';
+        loadingDiv.style.display = 'none';
         input.disabled = false;
         input.focus();
       }
