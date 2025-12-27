@@ -1,22 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Castlemaine Flyer</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Castlemaine Flyer - Airport Transfers</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 40px; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f8f9fa;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background: #000;
+      color: white;
+      text-align: center;
+      padding: 60px 20px 40px;
+    }
+    h1 { margin: 0; font-size: 2.8em; }
+    .subtitle { font-size: 1.3em; max-width: 700px; margin: 20px auto 0; opacity: 0.9; }
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 20px;
+    }
+    .search-container {
+      width: 100%;
+      max-width: 800px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      padding: 40px;
+      text-align: center;
+    }
+    .input-wrapper {
+      display: flex;
+      margin-top: 30px;
+      gap: 12px;
+    }
+    #user-input {
+      flex: 1;
+      padding: 18px 20px;
+      font-size: 1.2em;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      outline: none;
+    }
+    #user-input:focus { border-color: #000; }
+    button {
+      padding: 18px 32px;
+      font-size: 1.1em;
+      background: #000;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover { background: #333; }
+    #result {
+      margin-top: 40px;
+      padding: 20px;
+      background: #f0f8ff;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      text-align: left;
+      min-height: 100px;
+    }
+    #loading { display: none; margin-top: 20px; font-style: italic; color: #666; }
   </style>
 </head>
 <body>
-  <h1>Welcome to Castlemaine Flyer 🚀</h1>
-  <p>Chat with our AI booking assistant below!</p>
+  <header>
+    <h1>Welcome to Castlemaine Flyer 🚀</h1>
+    <p class="subtitle">
+      Tell us your flight number and date, plus pickup or drop-off address.<br/>
+      We'll do the rest — find the best time, calculate price (including any high-demand adjustment), and get you booked.
+    </p>
+  </header>
 
-  <div id="grok-chat-widget" style="position:fixed;bottom:20px;right:20px;width:380px;height:600px;border:1px solid #ccc;border-radius:12px;background:white;box-shadow:0 4px 20px rgba(0,0,0,0.2);display:flex;flex-direction:column;z-index:1000;">
-    <div style="padding:12px;background:#000;color:white;border-radius:12px 12px 0 0;font-weight:bold;">Castlemaine Flyer Assistant 🤖</div>
-    <div id="messages" style="flex:1;padding:12px;overflow-y:auto;background:#f9f9f9;"></div>
-    <input id="user-input" placeholder="Type your message... e.g. Hi, can you help book an airport transfer?" style="padding:12px;border:none;border-top:1px solid #ccc;outline:none;" />
-  </div>
+  <main>
+    <div class="search-container">
+      <form id="search-form">
+        <div class="input-wrapper">
+          <input 
+            id="user-input" 
+            type="text" 
+            placeholder="e.g. Pickup from Castlemaine to Melbourne Airport for QF123 on Jan 15, flight arrives 14:30"
+            autocomplete="off"
+          />
+          <button type="submit">Find & Book</button>
+        </div>
+      </form>
+      
+      <div id="loading">Working on your quote...</div>
+      <div id="result"></div>
+    </div>
+  </main>
 
-<script src="/chat.js"></script></body>
+  <script>
+    const form = document.getElementById('search-form');
+    const input = document.getElementById('user-input');
+    const resultDiv = document.getElementById('result');
+    const loading = document.getElementById('loading');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const message = input.value.trim();
+      if (!message) return;
+
+      resultDiv.innerHTML = '';
+      loading.style.display = 'block';
+      input.disabled = true;
+
+      try {
+        const res = await fetch('/api/grok-chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+        const data = await res.json();
+        resultDiv.innerHTML = `<strong>Assistant:</strong><br>${data.reply.replace(/\n/g, '<br>')}`;
+      } catch (err) {
+        resultDiv.innerHTML = `Error: ${err.message}<br>Please try again or contact support.`;
+        console.error(err);
+      } finally {
+        loading.style.display = 'none';
+        input.disabled = false;
+        input.focus();
+      }
+    });
+  </script>
+</body>
 </html>
