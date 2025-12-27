@@ -1,4 +1,3 @@
-import { Handler } from '@netlify/functions';
 import OpenAI from 'openai';
 
 const handler = async (event) => {
