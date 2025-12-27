@@ -1,7 +1,7 @@
 import { Handler } from '@netlify/functions';
 import OpenAI from 'openai';
 
-const handler: Handler = async (event) => {
+const handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
@@ -25,7 +25,7 @@ const handler: Handler = async (event) => {
     console.error('GROK_API_KEY is missing in environment variables');
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Server misconfiguration: API key not found' })
+      body: JSON.stringify({ error: 'Server configuration error: API key missing' })
     };
   }
 
@@ -36,7 +36,7 @@ const handler: Handler = async (event) => {
 
   try {
     const completion = await openai.chat.completions.create({
-      model: 'grok-beta',  // ← use this exact model name unless you know otherwise
+      model: 'grok-beta',
       messages: [
         {
           role: 'system',
@@ -48,7 +48,7 @@ const handler: Handler = async (event) => {
       max_tokens: 600,
     });
 
-    const reply = completion.choices[0]?.message?.content || 'No reply generated.';
+    const reply = completion.choices?.[0]?.message?.content || 'No response generated.';
 
     return {
       statusCode: 200,
