@@ -2,12 +2,10 @@ import { Handler } from '@netlify/functions';
 import OpenAI from 'openai';
 
 const handler: Handler = async (event) => {
-  // Only allow POST
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  // Parse incoming body safely
   let body;
   try {
     body = JSON.parse(event.body || '{}');
@@ -21,14 +19,13 @@ const handler: Handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: 'Missing or invalid message' }) };
   }
 
-  // Get API key from environment (never hard-code it)
   const apiKey = process.env.GROK_API_KEY;
 
   if (!apiKey) {
-    console.error('Missing GROK_API_KEY environment variable');
+    console.error('GROK_API_KEY is missing in environment variables');
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Server configuration error: API key missing' })
+      body: JSON.stringify({ error: 'Server misconfiguration: API key not found' })
     };
   }
 
@@ -39,36 +36,29 @@ const handler: Handler = async (event) => {
 
   try {
     const completion = await openai.chat.completions.create({
-      model: 'grok-beta',  // or 'grok-2-latest' / check your xAI dashboard for exact model name
+      model: 'grok-beta',  // ← use this exact model name unless you know otherwise
       messages: [
         {
           role: 'system',
-          content: `You are a helpful booking assistant for Castlemaine Flyer airport transfers in Victoria, Australia.
-Be polite, concise and professional.
-User provides natural language info about flight number, date, pickup/drop-off address.
-Steps:
-1. Use web search if needed to find flight times.
-2. Suggest pickup time (2-3h before international, 90min-2h domestic).
-3. Calculate price and check availability when tools are added.
-4. Present clear quote and ask for confirmation before booking.`
+          content: 'You are a helpful booking assistant for Castlemaine Flyer airport transfers. Be clear, polite and concise. Extract flight number, date, address. Suggest pickup time and price. Ask for confirmation before booking.'
         },
         { role: 'user', content: message }
       ],
       temperature: 0.7,
-      max_tokens: 800,
+      max_tokens: 600,
     });
 
-    const reply = completion.choices?.[0]?.message?.content || 'No response generated.';
+    const reply = completion.choices[0]?.message?.content || 'No reply generated.';
 
     return {
       statusCode: 200,
       body: JSON.stringify({ reply })
     };
   } catch (error) {
-    console.error('Grok API error:', error.message);
+    console.error('Grok API error:', error.message || error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: `Grok API call failed: ${error.message}` })
+      body: JSON.stringify({ error: `API call failed: ${error.message || 'Unknown error'}` })
     };
   }
 };
